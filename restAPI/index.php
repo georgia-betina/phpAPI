@@ -1,49 +1,66 @@
 <?php
 
-declare(strict_types=1);
+	declare(strict_types=1);
 
-/* ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL); */
+	/* ini_set('display_errors', 1);
+	ini_set('display_startup_errors', 1);
+	error_reporting(E_ALL); */
 
-spl_autoload_register(function ($class) {
-	require __DIR__ . "/src/$class.php";
-});
+	spl_autoload_register(function ($class) {
+		require __DIR__ . "/src/$class.php";
+	});
+	
+	set_error_handler("ErrorHandler::handleError");
+	set_exception_handler("ErrorHandler::handleException");
+	
+	header("Content-type: application/json; charset=UTF-8");
+	header("Access-Control-Allow-Origin: *");
+	header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+	header("Access-Control-Allow-Headers: Origin, Content-Type, Accept");
 
-set_error_handler("ErrorHandler::handleError");
-set_exception_handler("ErrorHandler::handleException");
+	$parts = explode("/", $_SERVER["REQUEST_URI"]);
 
-header("Content-type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Access-Control-Allow-Headers: Origin, Content-Type, Accept");
+	//print_r($parts);
+	// Exemplo sobre como as rotas são dispostas dentro de um array
+	// Lembrando que, por ter uma rota chamada restAPI antes de qualquer outra rota no site,
+	// o array sempre retornará, pelo menos, dois itens (considerando que esteja acessando
+	// o index) | Array ( [0] => [1] => restAPI [2] => )
+	// Array ( [0] => (index.php) [1] => restAPI [2] => (index.php) )
+	// |_ htdocs (0)
+	//  |_ restAPI (1)
+	//   |_ index.php (2)
 
-$parts = explode("/", $_SERVER["REQUEST_URI"]);
+	$database = new Database("localhost", "restful", "root", "");
 
-//print_r($parts);
-// Exemplo sobre como as rotas são dispostas dentro de um array
-// Lembrando que, por ter uma rota chamada restAPI antes de qualquer outra rota no site,
-// o array sempre retornará, pelo menos, dois itens (considerando que esteja acessando
-// o index) | Array ( [0] => [1] => restAPI [2] => )
-// Array ( [0] => (index.php) [1] => restAPI [2] => (index.php) )
-// |_ htdocs (0)
-//  |_ restAPI (1)
-//   |_ index.php (2)
+	switch($parts[2]) {
+		case "pedidos":
+			$gateway = new PedidoGateway($database);
+			$controller = new PedidoController($gateway);
+			
+			break;
+		case "produtos":
+			$gateway = new ProdutoGateway($database);
+			$controller = new ProdutoController($gateway);
 
-if ($parts[2] != "pedido") {
-	http_response_code(404);
-	exit;
-}
+			break;
+		case "produtosPedidos":
+			$gateway = new ProdutoPedidoGateway($database);
+			$controller = new ProdutoPedidoController($gateway);
 
-$id = $parts[3] ?? null;
+			break;
+		case "tipoProdutos":
+			$gateway = new TipoProdutoGateway($database);
+			$controller = new TipoProdutoController($gateway);
 
-$database = new Database("localhost", "restful", "root", "");
+			break;
+		default:
+			http_response_code(404);
+			exit;
+	}
 
-$gateway = new PedidoGateway($database);
+	$id = $parts[3] ?? null;
+	$controller->processRequest($_SERVER["REQUEST_METHOD"], $id);
 
-//var_dump($id);
-
-$controller = new PedidoController($gateway);
-$controller->processRequest($_SERVER["REQUEST_METHOD"], $id);
+	//var_dump($id);
 
 ?>
