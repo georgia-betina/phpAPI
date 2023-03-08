@@ -31,9 +31,51 @@ class PedidoGateway {
         $stmt->bindValue(":total", floatval($data["total"]), PDO::PARAM_STR);
 
         $stmt->execute();
+
         return $this->conn->lastInsertId();
-        //http_response_code(201);
-        /* http_response_code(500);
-        return json_encode(array("message" => "Unable to add data.")); */
+    }
+
+    public function get(string $id): array {
+        $sql = "SELECT * FROM pedido WHERE codigo = :codigo";
+
+        $stmt = $this->conn->prepare($sql);
+
+        $stmt->bindValue(":codigo", $id, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($data === false) {
+            return [];
+        }
+
+        return $data;
+    }
+
+    public function update(array $current, array $new): int {
+        $sql = "UPDATE pedido SET data = :data, total = :total WHERE codigo = :codigo";
+
+        $stmt = $this->conn->prepare($sql);
+        $date = new DateTime($current["data"]);
+
+        $stmt->bindValue(":data", $new["data"] ?? $date->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+        $stmt->bindValue(":total", $new["total"] ?? floatval($current["total"]), PDO::PARAM_STR);
+        $stmt->bindValue(":codigo", $current["codigo"], PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        return $stmt->rowCount();
+    }
+
+    public function delete(string $id): int {
+        $sql = "DELETE FROM pedido WHERE codigo = :codigo";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(":codigo", $id, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        return $stmt->rowCount();    
     }
 }

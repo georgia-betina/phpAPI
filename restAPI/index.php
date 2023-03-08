@@ -2,14 +2,15 @@
 
 declare(strict_types=1);
 
-ini_set('display_errors', 1);
+/* ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+error_reporting(E_ALL); */
 
 spl_autoload_register(function ($class) {
 	require __DIR__ . "/src/$class.php";
 });
 
+set_error_handler("ErrorHandler::handleError");
 set_exception_handler("ErrorHandler::handleException");
 
 header("Content-type: application/json; charset=UTF-8");
