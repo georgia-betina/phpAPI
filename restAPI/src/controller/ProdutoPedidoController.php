@@ -1,8 +1,12 @@
 <?php
 
-class ProdutoPedidoController {
-    public function __construct(private ProdutoPedidoGateway $gateway) {
+require_once "./src/gateway/ProdutoPedidoGateway.php";
+require_once "./src/Database.php";
 
+class ProdutoPedidoController {
+    private ProdutoPedidoGateway $gateway;
+    public function __construct(private Database $database) {
+        $this->gateway = new ProdutoPedidoGateway($database);
     }
 
     public function processRequest(string $method, ?string $id): void {

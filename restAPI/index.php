@@ -6,9 +6,12 @@
 	ini_set('display_startup_errors', 1);
 	error_reporting(E_ALL); */
 
-	spl_autoload_register(function ($class) {
-		require __DIR__ . "/src/$class.php";
-	});
+	require "./src/controller/PedidoController.php";
+	require "./src/controller/ProdutoController.php";
+	require "./src/controller/ProdutoPedidoController.php";
+	require "./src/controller/TipoProdutoController.php";
+	require "./src/Database.php";
+	require "./src/ErrorHandler.php";
 	
 	set_error_handler("ErrorHandler::handleError");
 	set_exception_handler("ErrorHandler::handleException");
@@ -32,25 +35,21 @@
 
 	$database = new Database("localhost", "restful", "root", "");
 
-	switch($parts[2]) {
+	switch($parts[3]) {
 		case "pedidos":
-			$gateway = new PedidoGateway($database);
-			$controller = new PedidoController($gateway);
+			$controller = new PedidoController($database);
 			
 			break;
 		case "produtos":
-			$gateway = new ProdutoGateway($database);
-			$controller = new ProdutoController($gateway);
+			$controller = new ProdutoController($database);
 
 			break;
 		case "produtosPedidos":
-			$gateway = new ProdutoPedidoGateway($database);
-			$controller = new ProdutoPedidoController($gateway);
+			$controller = new ProdutoPedidoController($database);
 
 			break;
 		case "tipoProdutos":
-			$gateway = new TipoProdutoGateway($database);
-			$controller = new TipoProdutoController($gateway);
+			$controller = new TipoProdutoController($database);
 
 			break;
 		default:
@@ -58,7 +57,7 @@
 			exit;
 	}
 
-	$id = $parts[3] ?? null;
+	$id = $parts[4] ?? null;
 	$controller->processRequest($_SERVER["REQUEST_METHOD"], $id);
 
 	//var_dump($id);

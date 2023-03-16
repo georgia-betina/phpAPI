@@ -1,8 +1,12 @@
 <?php
 
-class TipoProdutoController {
-    public function __construct(private TipoProdutoGateway $gateway) {
+require_once "./src/gateway/PedidoGateway.php";
+require_once "./src/Database.php";
 
+class PedidoController {
+    private PedidoGateway $gateway;
+    public function __construct(private Database $database) {
+        $this->gateway = new PedidoGateway($database);
     }
 
     public function processRequest(string $method, ?string $id): void {
@@ -15,17 +19,17 @@ class TipoProdutoController {
     }
 
     private function processResourceRequest(string $method, string $id): void {
-        $tipoProduto = $this->gateway->get($id);
+        $pedido = $this->gateway->get($id);
 
-        if (!$tipoProduto) {
+        if (!$pedido) {
             http_response_code(404);
-            echo json_encode(["message" => "Tipo de produto não encontrado!"]);
+            echo json_encode(["message" => "Pedido não encontrado!"]);
             return;
         }
 
         switch ($method) {
             case "GET":
-                echo json_encode($tipoProduto);
+                echo json_encode($pedido);
                 break;
             case "PATCH":
                 $data = (array) json_decode(file_get_contents("php://input"), true);
@@ -38,10 +42,10 @@ class TipoProdutoController {
                     break;
                 }
 
-                $rows = $this->gateway->update($tipoProduto, $data);
+                $rows = $this->gateway->update($pedido, $data);
 
                 echo json_encode([
-                    "message" => "Tipo de produto $id atualizado",
+                    "message" => "Pedido $id atualizado",
                     "linhas" => $rows
                 ]);
 
@@ -50,7 +54,7 @@ class TipoProdutoController {
                 $rows = $this->gateway->delete($id);
 
                 echo json_encode([
-                    "message" => "Tipo de produto $id deletado",
+                    "message" => "Pedido $id deletado",
                     "rows" => $rows
                 ]);
                 break;
@@ -59,7 +63,7 @@ class TipoProdutoController {
                 header("Allow: GET, PATCH, DELETE");
         }
 
-        echo json_encode($tipoProduto);
+        echo json_encode($pedido);
     }
 
     private function processCollectionRequest(string $method): void {
@@ -82,7 +86,7 @@ class TipoProdutoController {
                 $id = $this->gateway->create($data);
 
                 $response = [
-                    "message" => "Tipo de produto criado",
+                    "message" => "Pedido criado",
                     "codigo" => $id
                 ];
 
@@ -99,13 +103,13 @@ class TipoProdutoController {
     private function getValidationErrors(array $data, bool $is_new = true): array {
         $errors = [];
 
-        if ($is_new && empty($data["nome"])) {
-            $errors[] = "NOME: Insira um nome válido";
+        if ($is_new && empty($data["data"])) {
+            $errors[] = "DATA: Insira uma data válida";
         }
 
-        if ($is_new && array_key_exists("percentual_imposto", $data)) {
-            if (filter_var($data["percentual_imposto"], FILTER_VALIDATE_FLOAT) === false) {
-                $errors[] = "PERCENTUAL IMPOSTO: Insira um número positivo e diferente de 0.";
+        if ($is_new && array_key_exists("total", $data)) {
+            if (filter_var($data["total"], FILTER_VALIDATE_FLOAT) === false) {
+                $errors[] = "TOTAL: Insira um número positivo e diferente de 0.";
             }
         }
 
