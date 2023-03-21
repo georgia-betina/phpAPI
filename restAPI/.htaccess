@@ -1,2 +1,6 @@
 RewriteEngine On
 RewriteRule . index.php
+Header set Access-Control-Allow-Origin "*"
+Header set Allow "GET, POST, OPTIONS"
+Header set Access-Control-Allow-Methods "GET, POST, PATCH, OPTIONS"
+Header set Access-Control-Allow-Headers "Origin, Content-Type, Accept"
