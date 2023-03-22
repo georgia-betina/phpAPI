@@ -7,7 +7,7 @@ class ProdutoGateway {
     }
 
     public function getAll(): array {
-        $sql = "SELECT * FROM produto";
+        $sql = "SELECT * FROM produto WHERE ativado = 1";
 
         $stmt = $this->conn->query($sql);
 
@@ -37,7 +37,8 @@ class ProdutoGateway {
     }
 
     public function get(string $id): array {
-        $sql = "SELECT * FROM produto WHERE codigo = :codigo";
+        //$sql = "SELECT * FROM produto WHERE codigo = :codigo";
+        $sql = "SELECT * FROM `produto` WHERE ativado = 1 AND codigo = :codigo";
 
         $stmt = $this->conn->prepare($sql);
 
@@ -55,13 +56,14 @@ class ProdutoGateway {
     }
 
     public function update(array $current, array $new): array {
-        $sql = "UPDATE produto SET nome = :nome, valor = :valor, tipo = :tipo WHERE codigo = :codigo";
+        $sql = "UPDATE produto SET nome = :nome, valor = :valor, tipo = :tipo, ativado = :ativado WHERE codigo = :codigo";
 
         $stmt = $this->conn->prepare($sql);
 
         $stmt->bindValue(":nome", $new["nome"] ?? $current["nome"], PDO::PARAM_STR);
         $stmt->bindValue(":valor", $new["valor"] ?? floatval($current["valor"]), PDO::PARAM_STR);
         $stmt->bindValue(":tipo", $new["tipo"] ?? intval($current["tipo"]), PDO::PARAM_STR);
+        $stmt->bindValue(":ativado", $new["ativado"] ?? intval($current["ativado"]), PDO::PARAM_INT);
         $stmt->bindValue(":codigo", $current["codigo"], PDO::PARAM_INT);
 
         $stmt->execute();
@@ -75,8 +77,6 @@ class ProdutoGateway {
         $stmt->execute();
 
         return $stmt->fetch(PDO::FETCH_ASSOC);
-
-        //return $stmt->rowCount();
     }
 
     public function delete(string $id): int {

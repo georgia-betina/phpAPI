@@ -22,6 +22,38 @@ class PedidoGateway {
     }
 
     public function create(array $data): string {
+        // begin a transaction
+        $this->conn->beginTransaction();
+    
+        try {
+            // first query
+            $sql = "INSERT INTO pedido (data, total) VALUES (:data, :total)";
+            $stmt = $this->conn->prepare($sql);
+            $date = new DateTime($data["data"]);
+            $stmt->bindValue(":data", $date->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+            $stmt->bindValue(":total", floatval($data["total"]), PDO::PARAM_STR);
+            $stmt->execute();
+
+            $pedido_id = $this->conn->lastInsertId();
+            
+            // second query
+            $sql = "INSERT INTO produto_pedido (pedido, produto, quantidade, total) VALUES (:pedido, :produto, :quantidade, :total)";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(":pedido", intval($data[$pedido_id]), PDO::PARAM_STR);
+            $stmt->bindValue(":produto", intval($data["produto"]), PDO::PARAM_STR);
+            $stmt->bindValue(":quantidade", intval($data["quantidade"]), PDO::PARAM_STR);
+            $stmt->bindValue(":total", floatval($data["total"]), PDO::PARAM_STR);
+            $stmt->execute();
+    
+            // commit the transaction
+            return true;
+        } catch (Exception $e) {
+          // roll back if there is an error
+          /* echo "Error: " .  $e.getMessage(); */
+          return false;
+        }
+    }
+    /* public function create(array $data): string {
         $sql = "INSERT INTO pedido (data, total) VALUES (:data, :total)";
 
         $stmt = $this->conn->prepare($sql);
@@ -33,7 +65,7 @@ class PedidoGateway {
         $stmt->execute();
 
         return $this->conn->lastInsertId();
-    }
+    } */
 
     public function get(string $id): array {
         $sql = "SELECT * FROM pedido WHERE codigo = :codigo";
