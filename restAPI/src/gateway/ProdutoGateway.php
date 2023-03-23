@@ -1,12 +1,15 @@
 <?php
 
-class ProdutoGateway {
+class ProdutoGateway
+{
     private PDO $conn;
-    public function __construct(Database $database) {
+    public function __construct(Database $database)
+    {
         $this->conn = $database->getConnection();
     }
 
-    public function getAll(): array {
+    public function getAll(): array
+    {
         $sql = "SELECT * FROM produto WHERE ativado = 1";
 
         $stmt = $this->conn->query($sql);
@@ -22,7 +25,8 @@ class ProdutoGateway {
         return $data;
     }
 
-    public function create(array $data): string {
+    public function create(array $data): string
+    {
         $sql = "INSERT INTO produto (nome, valor, tipo) VALUES (:nome, :valor, :tipo)";
 
         $stmt = $this->conn->prepare($sql);
@@ -36,7 +40,8 @@ class ProdutoGateway {
         return $this->conn->lastInsertId();
     }
 
-    public function get(string $id): array {
+    public function get(string $id): array
+    {
         //$sql = "SELECT * FROM produto WHERE codigo = :codigo";
         $sql = "SELECT * FROM `produto` WHERE ativado = 1 AND codigo = :codigo";
 
@@ -55,7 +60,8 @@ class ProdutoGateway {
         return $data;
     }
 
-    public function update(array $current, array $new): array {
+    public function update(array $current, array $new): array
+    {
         $sql = "UPDATE produto SET nome = :nome, valor = :valor, tipo = :tipo, ativado = :ativado WHERE codigo = :codigo";
 
         $stmt = $this->conn->prepare($sql);
@@ -70,7 +76,7 @@ class ProdutoGateway {
 
         echo $stmt->rowCount();
 
-         // fetch the updated row
+        // fetch the updated row
         $sql = "SELECT * FROM produto WHERE codigo = :codigo";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(":codigo", $current["codigo"], PDO::PARAM_INT);
@@ -79,7 +85,8 @@ class ProdutoGateway {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function delete(string $id): int {
+    public function delete(string $id): int
+    {
         $sql = "DELETE FROM produto WHERE codigo = :codigo";
 
         $stmt = $this->conn->prepare($sql);
@@ -87,6 +94,6 @@ class ProdutoGateway {
 
         $stmt->execute();
 
-        return $stmt->rowCount();    
+        return $stmt->rowCount();
     }
 }
