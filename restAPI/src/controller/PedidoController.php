@@ -3,22 +3,26 @@
 require_once "./src/gateway/PedidoGateway.php";
 require_once "./src/Database.php";
 
-class PedidoController {
+class PedidoController
+{
     private PedidoGateway $gateway;
-    public function __construct(private Database $database) {
+    public function __construct(private Database $database)
+    {
         $this->gateway = new PedidoGateway($database);
     }
 
-    public function processRequest(string $method, ?string $id): void {
+    public function processRequest(string $method, ?string $id): void
+    {
         //var_dump($method, $id);
         if ($id) {
             $this->processResourceRequest($method, $id);
         } else {
-            $this->processCollectionRequest($method);
+            $this->processCollectionRequest($method, $id);
         }
     }
 
-    private function processResourceRequest(string $method, string $id): void {
+    private function processResourceRequest(string $method, string $id): void
+    {
         $pedido = $this->gateway->get($id);
 
         if (!$pedido) {
@@ -33,10 +37,10 @@ class PedidoController {
                 break;
             case "PATCH":
                 $data = (array) json_decode(file_get_contents("php://input"), true);
-            
+
                 $errors = $this->getValidationErrors($data, false);
 
-                if (! empty($errors)) {
+                if (!empty($errors)) {
                     http_response_code(422);
                     echo json_encode(["errors" => $errors]);
                     break;
@@ -66,18 +70,19 @@ class PedidoController {
         echo json_encode($pedido);
     }
 
-    private function processCollectionRequest(string $method): void {
+    private function processCollectionRequest(string $method, string $id): void
+    {
         switch ($method) {
             case "GET":
-                echo json_encode($this->gateway->getAll());
+                echo json_encode($this->gateway->getAll($id));
                 break;
 
             case "POST":
                 $data = (array) json_decode(file_get_contents("php://input"), true);
-            
+
                 $errors = $this->getValidationErrors($data);
 
-                if (! empty($errors)) {
+                if (!empty($errors)) {
                     http_response_code(422);
                     echo json_encode(["errors" => $errors]);
                     break;
@@ -100,7 +105,8 @@ class PedidoController {
         }
     }
 
-    private function getValidationErrors(array $data, bool $is_new = true): array {
+    private function getValidationErrors(array $data, bool $is_new = true): array
+    {
         $errors = [];
 
         if ($is_new && empty($data["data"])) {
